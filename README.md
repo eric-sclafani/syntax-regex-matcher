@@ -1,3 +1,3 @@
-# Sentence Regex Matcher (SRM)
+# Syntax Regex Matcher (SRM)
 
-This repository holds the source code for the `S`entence `R`egex `M`atcher software.
+This repository holds the source code for the `S`yntax `R`egex `M`atcher software.
