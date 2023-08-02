@@ -48,9 +48,8 @@ class SyntaxRegexMatcher:
     """
     This class encapsulates the sentence regex patterns and methods to apply them to target documents
     """
-    
     def __init__(self):
-        self.patterns = {
+        self._patterns = {
             "it-cleft": r"\([^-]*-be-[^-]*-[^-]*.*\([iI]t-it-PRP-nsubj\).*\([^-]*-[^-]*-NN[^-]*-attr.*\([^-]*-[^-]*-VB[^-]*-(relcl|advcl)",
             "pseudo-cleft": r"\([^-]*-be-[^-]*-[^-]*.*\([^-]*-[^-]*-(WP|WRB)-(dobj|advmod)",
             "all-cleft" : r"(\([^-]*-be-[^-]*-[^-]*.*\([^-]*-all-(P)?DT)|(\([^-]*-all-(P)?DT-[^-]*.*\([^-]*-be-[^-]*)",
@@ -62,13 +61,19 @@ class SyntaxRegexMatcher:
             "tag-question" : r"\([^-]*-(do|be|could|can|have)-[^-]*-ROOT.*\(\?-\?-\.-punct",
             "coordinate-clause" : r"\([^-]*-[^-]*-CC-cc\).*\([^-]*-[^-]*-(VB[^-]*|JJ)-conj.*\([^-]*-[^-]*-[^-]*-nsubj"
         }
+    
+    @property
+    def print_patterns(self) -> None:
+        for pattern_name, pattern in self._patterns.items():
+            print(f"{pattern_name} : {pattern}\n")
+
         
     def _find_treegex_matches(self, doc:Doc) -> Tuple[Match]:
         """Iterates through a document's sentences, applying every regex to each sentence"""
         matches = []
         for sent in doc.sents:
             tree_string = linearize_tree(sent)
-            for name, pattern in self.patterns.items():
+            for name, pattern in self._patterns.items():
                 match = re.search(pattern, tree_string)
                 if match:
                     matches.append(Match(name, match.group(), sent.text))
@@ -76,13 +81,13 @@ class SyntaxRegexMatcher:
 
     def add_patterns(self, patterns:Dict[str,str]) -> None:
         """Updates the default patterns dictionary with a user supplied dictionary of {pattern_name:regex} pairs"""
-        self.patterns.update(patterns)
+        self._patterns.update(patterns)
         
     def remove_patterns(self, to_remove:Iterable[str]) -> None:
         """Given an iterable of pattern names, removes those patterns from the registered pattens list"""
         for pattern_name in to_remove:
             try:
-                del self.patterns[pattern_name]
+                del self._patterns[pattern_name]
             except KeyError:
                 raise KeyError(f"Pattern '{pattern_name}' not in registered patterns.")
             

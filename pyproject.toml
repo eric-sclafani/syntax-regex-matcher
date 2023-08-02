@@ -8,12 +8,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "srm"
-version = "0.1.0"
+version = "1.0.0"
 description=""
 readme = "README.md"
 requires-python = ">=3.8"
-license = {file = "LICENSE.md"}
-#urls = {source = "https://github.com/iarpa-hiatus/eric-gram2vec"} #! will need to be updated
+license = {file = "LICENSE"}
+urls = {source = "https://github.com/eric-sclafani/syntax-regex-matcher"}
 dependencies = [
     "spacy",
 ]
