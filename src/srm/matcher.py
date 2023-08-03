@@ -64,7 +64,7 @@ class SyntaxRegexMatcher:
     
     @property
     def print_patterns(self) -> None:
-        for pattern_name, pattern in self._patterns.items():
+        for pattern_name, pattern in self.patterns.items():
             print(f"{pattern_name} : {pattern}\n")
 
         
@@ -73,7 +73,7 @@ class SyntaxRegexMatcher:
         matches = []
         for sent in doc.sents:
             tree_string = linearize_tree(sent)
-            for name, pattern in self._patterns.items():
+            for name, pattern in self.patterns.items():
                 match = re.search(pattern, tree_string)
                 if match:
                     matches.append(Match(name, match.group(), sent.text))
@@ -81,13 +81,13 @@ class SyntaxRegexMatcher:
 
     def add_patterns(self, patterns:Dict[str,str]) -> None:
         """Updates the default patterns dictionary with a user supplied dictionary of {pattern_name:regex} pairs"""
-        self._patterns.update(patterns)
+        self.patterns.update(patterns)
         
     def remove_patterns(self, to_remove:Iterable[str]) -> None:
         """Given an iterable of pattern names, removes those patterns from the registered pattens list"""
         for pattern_name in to_remove:
             try:
-                del self._patterns[pattern_name]
+                del self.patterns[pattern_name]
             except KeyError:
                 raise KeyError(f"Pattern '{pattern_name}' not in registered patterns.")
             
