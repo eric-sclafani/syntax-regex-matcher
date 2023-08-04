@@ -62,7 +62,6 @@ class SyntaxRegexMatcher:
             "coordinate-clause" : r"\([^-]*-[^-]*-CC-cc\).*\([^-]*-[^-]*-(VB[^-]*|JJ)-conj.*\([^-]*-[^-]*-[^-]*-nsubj"
         }
     
-    @property
     def print_patterns(self) -> None:
         for pattern_name, pattern in self.patterns.items():
             print(f"{pattern_name} : {pattern}\n")
