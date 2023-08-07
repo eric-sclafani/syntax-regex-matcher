@@ -64,7 +64,7 @@ pseudo-cleft : What I want is some peace and quiet!
 
 Each match is an instance of the `Match` class. The class and attributes are shown here:
 ```python
-@dataclass
+>>> @dataclass
 >>> class Match:
 >>>     pattern_name:str
 >>>     matched:str
@@ -98,7 +98,7 @@ The second method is `.match_documents()`, which matches an interable of documen
 (passive : English is spoken all over the world., pseudo-cleft : When it was sunny, I went outside, but it started raining., coordinate-clause : When it was sunny, I went outside, but it started raining.)
 (obj-relcl : She is the author that I have interviewed., passive : They might have been invited to the party.)
 ```
-Keen readers may have noticed that the sentence: _When it was sunny, I went outside, but it started raining._ is incorrectly being detected as a `psueo-cleft`. This is a great time to point out that false positives/negatives are possible and the regular expressions are not fool proof. 
+Keen readers may have noticed that the sentence: _When it was sunny, I went outside, but it started raining._ is incorrectly being detected as a `pseudo-cleft`. This is a great time to point out that false positives/negatives are possible and the regular expressions are not fool proof. 
 
 From my experience in crafting these regex, its often a tradeoff between precision and recall. Some patterns are more difficult to capture than others. And the more rules you add to a regex pattern, the more likely you are to accidentally capture unwanted sentences 
 
