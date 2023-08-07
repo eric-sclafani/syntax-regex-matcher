@@ -8,9 +8,15 @@ Given a [spaCy](https://spacy.io/usage/spacy-101) Doc object that has been depen
 
 ## Motivation
 
-This package was initially created to work with another one I made called `gram2vec`, a package for embedding text documents based off stylometric choices authors make pertaining to grammar. I decided to develop SRM as a separate software because I believe it can be useful in other facets of NLP/Comp Ling as well.
+This package was initially created to work with another one I made called `gram2vec`, a package for embedding text documents based off stylometric choices authors make pertaining to grammar. SRM was developed as a separate software because I believe it can be useful in other facets of NLP/Comp Ling too. As far as I know, there's not many python packages for searching sentences for specific syntactic constructions. 
 
-As far as I know, there's not many python packages for searching sentences for specific syntactic constructions. Additionally, I think generative LLMs are not yet consistantly reliable enough to be used to identify English sentence patterns. 
+One might also think what the point of this package is if LLMs are getting better at "understanding" language. This is a valid thought, but the following points hopefully clear this up:
+
+- LLMs, as powerful as they are, can be inconsistent with their answers due to their stochastic nature. Using a rule-based approach guarantees deterministic outputs, which can be desirable for certain applications.
+
+- LLMs don't learn and understand language like humans do. They are simply just really, really good at repeating things they've seen in the pre-training stage. That's why GPT works so well, since it was basically trained on all of the internet prior to 2021. Again, I prefer rule-based methods because that's how language itself works (`in my opinion`). Linguistics involves the study of rules pertaining to specific languages (phonological, syntactic, phonetic, etc..) and how, as humans, we learn and understand these rules. 
+
+- SRM is very lightweight, only requiring the use of spaCy for sentence parsing.
 
 ## Setup
 
@@ -34,7 +40,8 @@ pip install -e syntax-regex-matcher/
 
 ## Usage
 
-After installing the package, import the `SyntaxRegexMatcher` class:
+### Matcher
+Import the `SyntaxRegexMatcher` class:
 ```python
 from srm import SyntaxRegexMatcher
 
@@ -157,14 +164,74 @@ if-because-cleft : \([^-]*-be-[^-]*-[^-]*.*\([^-]*-[^-]*-[^-]*-advcl\([^-*]*-if-
 tag-question : \([^-]*-(do|be|could|can|have)-[^-]*-ROOT.*\(\?-\?-\.-punct
 ```
 
+### Linear trees
 
+Under the hood, given a spaCy-generated parse tree, SRM converts each dependency node into a string using the following format:
+```
+(<word>-<lemma>-<pos>-<deplink>) 
+```
+It also preserves dependencies by using nested parenthesis:
+```
+The chicken, who was busy laying eggs, sat happily.
 
+(sat-sit-VBD-ROOT(chicken-chicken-NN-nsubj(The-the-DT-det)(,-,-,-punct)(was-be-VBD-relcl(who-who-WP-nsubj)(busy-busy-JJ-acomp(laying-lay-VBG-xcomp(eggs-egg-NNS-dobj)(,-,-,-punct)(happily-happily-RB-advmod)(.-.-.-punct))))))
+```
+
+A little unreadable, but this format allows for regex matching. The tree linearizing function is available those who just want to use that functionality:
+```python
+>>> from srm import linearize_tree
+>>> import spacy
+
+>>> nlp = spacy.load("en_core_web_lg")
+>>> doc = nlp("All the dog in the tree knew was that the bone was on the grass.")
+>>> sentences = list(doc.sents)
+>>> linearize_tree(sentences[0])
+
+(knew-know-VBD-ROOT(dog-dog-NN-nsubj(All-all-PDT-predet)(the-the-DT-det)(in-in-IN-prep(tree-tree-NN-pobj(the-the-DT-det)(was-be-VBD-ccomp(was-be-VBD-ccomp(that-that-IN-mark)(bone-bone-NN-nsubj(the-the-DT-det)(on-on-IN-prep(grass-grass-NN-pobj(the-the-DT-det)(.-.-.-punct))))))))))
+```
 
 ## Pattern creation
 
-## Contribution
+The pattern creation process is simple (but sometimes not easy!). It just involves generating a collection of `linear trees` from example sentences and manually observing capturable substrings that each sentence shares. Here is my process:
 
-## Known issues:
+1. First think about what syntactic phenomena that would be interesting to capture. For me, this involved consulting with fellow linguists, along with some Googling here and there.
+
+2. Add a JSON object to the [pattern_tests.json](pattern_testing/pattern_tests.json). It should have `name` and `tests` fields. The `name` is the name of the syntactic pattern, and each `test` is an array containing the truth value of whether that sentence is an example of that pattern, and the sentence itself. Having both `true` and `false` examples helps refine the regex:
+```json
+{
+        "name" : "psuedo-cleft",
+        "tests" : [
+            ["TRUE", "What I want is some peace and quiet!"],
+            ["TRUE", "What you need to do is to rest for a while."],
+            ["TRUE", "Where I want to go is a place so far away from here."],
+            ["TRUE", "How she paid for her food was with her credit card."],
+            ["TRUE", "Some peace and quiet is what I want."],
+            ["TRUE", "A place so far away from here is where I want to go."],
+            ["FALSE", "I want a hamburger."],
+            ["FALSE", "Where did I put that potato?"],
+            ["FALSE", "I like having peace and quiet"],
+            ["FALSE", "What I need is none of your business."]
+        ]
+    },
+```
+3. Assuming the added JSON object is formatted correctly, run the [test_patterns.py](pattern_testing/test_patterns.py) script to generate linear strings. They will be saved in the [pattern_test_outputs/](pattern_testing/pattern_test_outputs) directory.
+
+4. Navigate to the newly created pattern file in [pattern_test_outputs/](pattern_testing/pattern_test_outputs)your_pattern_name.txt and copy+paste its contents into [https://regex101.com/](https://regex101.com/). This website makes it very simple to test whether regex patterns work because it updates the matching in real time. Best of all, patterns and test strings can be saved to the website.
+
+5. Finally, some patterns are easier to create than others. Often times, its a balance between false positives and false negatives. After you're happy with the pattern, add it to your `SyntaxRegexMatcher` instance as outlined in the previous section.
+
+## Contributions
+
+All patterns are not fool proof, so if you come across false positives or negatives, feel free to submit an issue. This helps immensely when fine tuning the patterns.
+
+If you'd like to submit a PR to permanently add a pattern to SRM, please follow the steps in the previous section to ensure your pattern works. Make sure to include the pattern tesing .txt file so I can verify the pattern.
+
+Feel free to suggest other modifications as well. You can view the TODO.md for things on the bucket list.
+
+All contributions are greatly appreciated.
+ 
+
+## Known issues (as of 08/07/2023):
 
 - `General`
     - In sentences where the _same pattern_ occurs more than once, the regex counts it as **one** occurence, _not_ two. I'm not sure if this is an issue with the regex itself, or my python implementation.
